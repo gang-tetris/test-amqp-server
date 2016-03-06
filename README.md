@@ -1,2 +1,4 @@
-# test-amqp-server
-Server for interaction via AMQP protocol
+# Test AMQP server
+
+Server for interaction via AMQP protocol.
+
