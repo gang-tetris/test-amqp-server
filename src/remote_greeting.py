@@ -2,26 +2,33 @@ from pika import BasicProperties
 import json
 
 def on_request(client, ch, method, props, body):
-    name = body.decode('utf-8')
+    body = json.loads(body.decode('utf-8'))
+
+    name = body['name']
+    operation = body['op']
 
     print(" [.] Greet %s"%name)
     print("{}: {}; {}".format(method, props, body))
 
-    #response = 'Hi {name}'.format(name=name)
-    response = json.loads(client.call(json.dumps({
-        'op': 'select',
-        'name': name
-    })).decode('utf-8'))
-    if response['success']:
+    if operation == 'select':
+        response = json.loads(client.call(json.dumps({
+            'op': operation,
+            'name': name
+        })).decode('utf-8'))
+    elif operation == 'insert':
+        age = body['age']
+        response = json.loads(client.call(json.dumps({
+            'op': operation,
+            'name': name,
+            'age': age
+        })).decode('utf-8'))
+
+    if response['success'] and operation == 'select':
         response = {
             'success': True,
             'text': 'Hi {}'.format(response['person']['name'])
         }
-    else:
-        response = {
-            'success': False
-        }
-    #response = '{"success": true}'
+
     properties = BasicProperties(correlation_id = props.correlation_id)
 
     ch.basic_publish(exchange='', routing_key=props.reply_to,
