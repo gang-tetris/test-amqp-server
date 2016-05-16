@@ -8,7 +8,8 @@ DEFAULT_QUEUE = 'rpc_queue'
 DEFAULT_HOST = 'rabbit'
 
 class Server(object):
-    def __init__(self):
+    def __init__(self, hostname):
+        self.__hostname = hostname
         self.connect()
 
 
@@ -66,6 +67,9 @@ class Server(object):
             'op': 'select',
             'name': name
         })).decode('utf-8'))
+        if 'response' not in response:
+            response['response'] = {}
+        response['response']['logic'] = self.__hostname
         return response
 
 
@@ -75,7 +79,8 @@ class Server(object):
             'name': name,
             'age': age
         })).decode('utf-8'))
+        if 'response' not in response:
+            response['response'] = {}
+        response['response']['logic'] = self.__hostname
         return response
-
-server = Server()
 

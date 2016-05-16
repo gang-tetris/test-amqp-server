@@ -8,10 +8,11 @@ WORKDIR /code
 ADD requirements.txt /code/
 RUN pip install -r requirements.txt
 
-ADD . /code/
+COPY . /code/
+COPY ./docker-entrypoint.sh /docker-entrypoint.sh
 
 RUN apt-get update && apt-get install -y \
         netcat
 
-CMD [ "./start.sh" ]
+ENTRYPOINT [ "/docker-entrypoint.sh" ]
 
