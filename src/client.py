@@ -5,13 +5,16 @@ from sys import argv
 from json import dumps as stringify, loads as jsonify
 
 class PersonRpcClient(object):
-    def __init__(self, connection):
-        #self.connection = connection
+    def __init__(self):
+        self.connect()
+
+    def connect(self):
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(
                                                   host='rabbit'))
         self.channel = self.connection.channel()
 
-        result = self.channel.queue_declare(exclusive=True)
+        result = self.channel.queue_declare(exclusive=True,
+                                            arguments={'x-delay' : 5000})
         self.callback_queue = result.method.queue
 
         self.channel.basic_consume(self.on_response, no_ack=True,
@@ -24,6 +27,9 @@ class PersonRpcClient(object):
     def call(self, person):
         self.response = None
         self.corr_id = str(uuid.uuid4())
+        if self.connection.is_closed:
+            self.connect()
+
         self.channel.basic_publish(exchange='',
                                    routing_key='java_queue',
                                    properties=pika.BasicProperties(
