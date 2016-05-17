@@ -4,19 +4,21 @@ import uuid
 from sys import argv
 from json import dumps as stringify, loads as jsonify
 
+DEFAULT_HOST = 'rabbit'
+DEFAULT_CLIENT_QUEUE = 'java_queue'
+
 class PersonRpcClient(object):
     def __init__(self):
         self.connect()
 
     def connect(self):
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(
-                                                  host='rabbit'))
+        self.connection = pika.BlockingConnection(
+                          pika.ConnectionParameters(host=DEFAULT_HOST))
         self.channel = self.connection.channel()
         result = self.channel.queue_declare(exclusive=True)
         self.callback_queue = result.method.queue
 
-        self.channel.basic_consume(self.on_response, no_ack=True,
-                                   queue=self.callback_queue)
+        self.channel.basic_consume(self.on_response, queue=self.callback_queue)
 
     def on_response(self, ch, method, props, body):
         if self.corr_id == props.correlation_id:
@@ -29,7 +31,7 @@ class PersonRpcClient(object):
             self.connect()
 
         self.channel.basic_publish(exchange='',
-                                   routing_key='java_queue',
+                                   routing_key=DEFAULT_CLIENT_QUEUE,
                                    properties=pika.BasicProperties(
                                          reply_to = self.callback_queue,
                                          correlation_id = self.corr_id,

@@ -17,8 +17,7 @@ class Server(object):
         self.connection = BlockingConnection(
                           ConnectionParameters(host=DEFAULT_HOST))
         self.channel = self.connection.channel()
-        self.channel.queue_declare(queue=DEFAULT_QUEUE,
-                              arguments={'x-delay' : 5000})
+        self.channel.queue_declare(queue=DEFAULT_QUEUE)
         self.channel.basic_qos(prefetch_count=1)
         self.client = PersonRpcClient()
         self.channel.basic_consume(self.on_request, queue=DEFAULT_QUEUE)
