@@ -12,9 +12,7 @@ class PersonRpcClient(object):
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(
                                                   host='rabbit'))
         self.channel = self.connection.channel()
-
-        result = self.channel.queue_declare(exclusive=True,
-                                            arguments={'x-delay' : 5000})
+        result = self.channel.queue_declare(exclusive=True)
         self.callback_queue = result.method.queue
 
         self.channel.basic_consume(self.on_response, no_ack=True,
